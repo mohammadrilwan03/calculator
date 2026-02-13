@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/calculator_db';
+const MONGODB_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/calculator_db';
 
 mongoose.connect(MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
@@ -29,7 +29,8 @@ const calculationSchema = new mongoose.Schema({
 const Calculation = mongoose.model('Calculation', calculationSchema);
 
 // Routes
-// Get all calculations
+
+// Get all calculations (latest 10)
 app.get('/api/history', async (req, res) => {
     try {
         const history = await Calculation.find().sort({ createdAt: -1 }).limit(10);
@@ -39,7 +40,7 @@ app.get('/api/history', async (req, res) => {
     }
 });
 
-// Save a calculation
+// Save a new calculation
 app.post('/api/history', async (req, res) => {
     const { equation, result } = req.body;
 
@@ -57,7 +58,7 @@ app.post('/api/history', async (req, res) => {
     }
 });
 
-// Clear history
+// Clear all history
 app.delete('/api/history', async (req, res) => {
     try {
         await Calculation.deleteMany({});
@@ -67,7 +68,7 @@ app.delete('/api/history', async (req, res) => {
     }
 });
 
-// Delete specific calculation
+// Delete a specific calculation
 app.delete('/api/history/:id', async (req, res) => {
     try {
         const deleted = await Calculation.findByIdAndDelete(req.params.id);
@@ -78,6 +79,7 @@ app.delete('/api/history/:id', async (req, res) => {
     }
 });
 
+// Start server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });
