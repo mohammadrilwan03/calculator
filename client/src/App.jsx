@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'https://calculator-vngb.onrender.com/api/history';
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() {
   const [display, setDisplay] = useState('0');
@@ -17,7 +17,6 @@ function App() {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
-      // Map MongoDB data to match the UI expectation if needed
       const mappedData = data.map(item => ({
         id: item._id,
         eq: item.equation,
@@ -46,11 +45,9 @@ function App() {
   const calculate = () => {
     try {
       const fullEquation = equation + display;
-      // Using a simple Function constructor for safe-ish eval of math
       const result = new Function(`return ${fullEquation.replace(/[^-()\d/*+.]/g, '')}`)();
       const finalResult = Number(result.toFixed(8)).toString();
 
-      // Save to Backend
       saveCalculation(fullEquation, finalResult);
 
       setDisplay(finalResult);
@@ -70,10 +67,9 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ equation, result })
       });
-      fetchHistory(); // Refresh history after saving
+      fetchHistory();
     } catch (error) {
       console.error('Error saving calculation:', error);
-      // Fallback to local history update if backend fails
       setHistory(prev => [{ id: Date.now(), eq: equation, res: result }, ...prev].slice(0, 10));
     }
   };
@@ -145,7 +141,7 @@ function App() {
           <button onClick={() => handleOperator('+')} className="btn-op">+</button>
 
           <button onClick={() => handleNumber('0')} className="btn-zero">0</button>
-          <button onClick={() => handleNumber('.')} >.</button>
+          <button onClick={() => handleNumber('.')}>.</button>
           <button onClick={calculate} className="btn-equal">=</button>
         </div>
       </div>
@@ -153,15 +149,21 @@ function App() {
       <div className="history-panel">
         <div className="history-header">
           <h3>RECENT TOTALS</h3>
-          <button onClick={async () => {
-            try {
-              await fetch(API_URL, { method: 'DELETE' });
-              setHistory([]);
-            } catch (error) {
-              console.error('Error clearing history:', error);
-            }
-          }} className="clear-history">Clear</button>
+          <button
+            onClick={async () => {
+              try {
+                await fetch(API_URL, { method: 'DELETE' });
+                setHistory([]);
+              } catch (error) {
+                console.error('Error clearing history:', error);
+              }
+            }}
+            className="clear-history"
+          >
+            Clear
+          </button>
         </div>
+
         <div className="history-list">
           {history.length === 0 ? (
             <div className="empty-history">No recent calculations</div>
@@ -170,7 +172,12 @@ function App() {
               <div key={item.id} className="history-item">
                 <div className="history-item-content">
                   <span className="history-eq">{item.eq} =</span>
-                  <span className="history-res" onClick={() => setDisplay(item.res)}>{item.res}</span>
+                  <span
+                    className="history-res"
+                    onClick={() => setDisplay(item.res)}
+                  >
+                    {item.res}
+                  </span>
                 </div>
                 <button
                   className="delete-item-btn"
