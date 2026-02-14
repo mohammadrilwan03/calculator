@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'http://localhost:5000/api/history';
+const API_URL = 'https://calculator-vngb.onrender.com/api/history';
 
 function App() {
   const [display, setDisplay] = useState('0');
